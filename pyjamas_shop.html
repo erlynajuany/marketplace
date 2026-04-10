@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <link href="https://fonts.googleapis.com/css2?family=Gaegu:wght@400;700&family=Noto+Sans+KR:wght@300;400;500&display=swap" rel="stylesheet">
+    <style>
+        *{box-sizing:border-box;margin:0;padding:0;}
+        body{font-family:'Noto Sans KR',sans-serif;background:#fdf8f5;color:#5a3a4a;}
+        .page{padding-bottom:3rem;}
+        .hero{text-align:center;padding:2.5rem 1rem 1.5rem;}
+        .brand{font-family:'Gaegu',cursive;font-size:38px;color:#c97fa0;letter-spacing:2px;line-height:1;}
+        .brand-kr{font-size:13px;color:#d4a0bb;letter-spacing:6px;margin-top:4px;font-weight:300;}
+        .tagline{font-size:12px;color:#c2a0b0;margin-top:10px;letter-spacing:2px;text-transform:uppercase;}
+        .deco{display:flex;justify-content:center;gap:6px;margin:12px 0;font-size:16px;}
+        
+        .filters{display:flex;justify-content:center;gap:8px;flex-wrap:wrap;padding:0 1rem 1.5rem;}
+        .fb{border:1.5px solid #e8c6d6;background:transparent;border-radius:20px;padding:6px 18px;font-size:12px;cursor:pointer;color:#b07090;transition:all 0.2s;}
+        .fb.active, .fb:hover{background:#f9e4ef;border-color:#c97fa0;color:#c97fa0;}
+
+        .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:20px;padding:0 1.5rem;max-width:1200px;margin:0 auto;}
+        .card{background:#fff;border-radius:20px;overflow:hidden;border:1.5px solid #f3e0ea;transition:transform 0.2s;animation:fadeup 0.4s ease both;cursor:pointer;}
+        .card:hover{transform:translateY(-4px);border-color:#e0a8c4;}
+        
+        @keyframes fadeup{from{opacity:0;transform:translateY(12px);}to{opacity:1;transform:translateY(0);}}
+        
+        .img-box{width:100%;aspect-ratio:1;overflow:hidden;position:relative;background:#f9f9f9;}
+        .img-box img{width:100%;height:100%;object-fit:cover;}
+        
+        .badge{position:absolute;top:10px;left:10px;font-size:10px;padding:3px 9px;border-radius:20px;font-weight:500;z-index:2;}
+        .badge.best{background:#fff0f6;color:#c97fa0;border:1px solid #f0c0d8;}
+        .badge.new{background:#f0f7ff;color:#7ab0d8;border:1px solid #c0daf0;}
+        .badge.set{background:#f3fff0;color:#7ab880;border:1px solid #c0e8c0;}
+
+        .heart{position:absolute;top:10px;right:10px;font-size:16px;background:#fff;border-radius:50%;width:28px;height:28px;display:flex;align-items:center;justify-content:center;border:1px solid #f0dcea;z-index:2;}
+
+        .info{padding:14px;}
+        .pcat{font-size:10px;color:#d4a0bb;letter-spacing:2px;text-transform:uppercase;margin-bottom:4px;}
+        .pname{font-size:14px;font-weight:500;margin-bottom:8px;line-height:1.2;}
+        .pname span{display:block;color:#c0a0b0;font-size:11px;margin-top:2px;}
+        
+        .sizes{display:flex;gap:4px;margin-bottom:12px;}
+        .sz{font-size:9px;border:1px solid #f0dcea;border-radius:4px;padding:1px 5px;color:#b09090;}
+        
+        .row{display:flex;align-items:center;justify-content:space-between;border-top:1px solid #fdf0f5;padding-top:10px;}
+        .price{font-size:16px;font-weight:700;color:#c97fa0;font-family:'Gaegu',cursive;}
+        .add{background:#fce8f2;border:none;border-radius:10px;padding:5px 12px;font-size:11px;color:#c97fa0;cursor:pointer;transition:0.2s;}
+        .add:hover{background:#f5cfe3;}
+
+        .loading{text-align:center;padding:3rem;color:#d4a0bb;font-size:14px;letter-spacing:1px;}
+        .error{text-align:center;padding:3rem;color:#e07080;font-size:13px;}
+
+        .footer-bar{text-align:center;margin-top:3rem;font-size:11px;color:#d4b0c0;letter-spacing:1px;}
+    </style>
+</head>
+<body>
+
+<div class="page">
+    <div class="hero">
+        <div class="brand">chaeijeu</div>
+        <div class="brand-kr">채이즈</div>
+        <div class="deco">🌸 ☁️ 🌙</div>
+        <div class="tagline">cozy korean pyjamas · 편안한 잠옷</div>
+    </div>
+
+    <div class="filters">
+        <button class="fb active" onclick="filter('all', this)">전체 All</button>
+        <button class="fb" onclick="filter('set', this)">세트 Sets</button>
+        <button class="fb" onclick="filter('top', this)">상의 Tops</button>
+        <button class="fb" onclick="filter('bottom', this)">하의 Bottoms</button>
+    </div>
+
+    <div class="grid" id="grid">
+        <div class="loading" style="grid-column:1/-1">🌸 불러오는 중... Loading products</div>
+    </div>
+    
+    <div class="footer-bar">🌸 free shipping over ₩30,000 · 무료배송 🌸</div>
+</div>
+
+<script>
+const SHEET_CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vTv9JKHjU5pTGouCN1pYPijdnZ0LG5q-SKJQNDtn2jqMy2TYpRGSvfm9_sUQk4TY4uNZMTu3eeMv8ca/pub?output=csv';
+
+const badgeLabel = {best:'베스트 Best', new:'신상 New', set:'세트 Set'};
+
+let allProducts = [];
+
+// Parse a CSV string into an array of objects using the first row as headers.
+// Handles quoted fields that may contain commas.
+function parseCSV(text) {
+    const lines = text.trim().split('\n');
+    if (lines.length < 2) return [];
+
+    const headers = splitCSVRow(lines[0]);
+    return lines.slice(1).map(line => {
+        const values = splitCSVRow(line);
+        const obj = {};
+        headers.forEach((h, i) => {
+            obj[h.trim()] = (values[i] || '').trim();
+        });
+        return obj;
+    }).filter(row => row.id); // skip empty rows
+}
+
+function splitCSVRow(row) {
+    const result = [];
+    let current = '';
+    let inQuotes = false;
+    for (let i = 0; i < row.length; i++) {
+        const ch = row[i];
+        if (ch === '"') {
+            inQuotes = !inQuotes;
+        } else if (ch === ',' && !inQuotes) {
+            result.push(current);
+            current = '';
+        } else {
+            current += ch;
+        }
+    }
+    result.push(current);
+    return result;
+}
+
+function render(items) {
+    const grid = document.getElementById('grid');
+    if (!items.length) {
+        grid.innerHTML = '<div class="loading" style="grid-column:1/-1">상품이 없어요 🌙</div>';
+        return;
+    }
+    grid.innerHTML = items.map((p, i) => `
+        <div class="card" style="animation-delay:${i * 0.05}s">
+            <div class="img-box">
+                ${(p.badge && p.badge !== 'null' && p.badge !== '') ? `<span class="badge ${p.badge}">${badgeLabel[p.badge] || p.badge}</span>` : ''}
+                <span class="heart" onclick="event.stopPropagation(); this.textContent=this.textContent==='🤍'?'🩷':'🤍'">🤍</span>
+                <img src="${p.img}" alt="${p.name}" loading="lazy">
+            </div>
+            <div class="info">
+                <div class="pcat">${p.cat}</div>
+                <div class="pname">${p.name} <span>${p.nameKr}</span></div>
+                <div class="sizes">
+                    <span class="sz">${p.sizes}</span>
+                </div>
+                <div class="row">
+                    <span class="price">${p.price}</span>
+                    <button class="add" onclick="event.stopPropagation(); this.textContent='담겼어요 ✓'">담기 +</button>
+                </div>
+            </div>
+        </div>
+    `).join('');
+}
+
+function filter(cat, btn) {
+    document.querySelectorAll('.fb').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    render(cat === 'all' ? allProducts : allProducts.filter(p => p.cat === cat));
+}
+
+async function loadProducts() {
+    try {
+        const res = await fetch(SHEET_CSV_URL);
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        const text = await res.text();
+        allProducts = parseCSV(text);
+        render(allProducts);
+    } catch (err) {
+        document.getElementById('grid').innerHTML =
+            `<div class="error" style="grid-column:1/-1">⚠️ 상품을 불러올 수 없어요.<br><small>${err.message}</small></div>`;
+    }
+}
+
+loadProducts();
+</script>
+
+</body>
+</html>
