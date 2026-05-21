@@ -1,0 +1,324 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>chaeijeu · 상품 등록</title>
+    <link href="https://fonts.googleapis.com/css2?family=Gaegu:wght@400;700&family=Noto+Sans+KR:wght@300;400;500&display=swap" rel="stylesheet">
+    <style>
+        *{box-sizing:border-box;margin:0;padding:0;}
+        body{font-family:'Noto Sans KR',sans-serif;background:#fdf8f5;color:#5a3a4a;min-height:100vh;}
+
+        /* ── Header ── */
+        .hero{text-align:center;padding:2.5rem 1rem 1.2rem;position:relative;}
+        .back-btn{
+            position:absolute;left:1.2rem;top:50%;transform:translateY(-50%);
+            display:inline-flex;align-items:center;gap:5px;
+            padding:6px 16px;
+            background:transparent;border:1.5px solid #e8c6d6;
+            border-radius:20px;font-size:12px;color:#b07090;
+            text-decoration:none;cursor:pointer;transition:all 0.2s;
+            font-family:'Noto Sans KR',sans-serif;
+        }
+        .back-btn:hover{background:#f9e4ef;border-color:#c97fa0;color:#c97fa0;}
+        .brand{font-family:'Gaegu',cursive;font-size:38px;color:#c97fa0;letter-spacing:2px;line-height:1;}
+        .brand-kr{font-size:13px;color:#d4a0bb;letter-spacing:6px;margin-top:4px;font-weight:300;}
+        .deco{display:flex;justify-content:center;gap:6px;margin:10px 0 4px;font-size:16px;}
+        .page-title{font-size:13px;color:#c2a0b0;letter-spacing:2px;text-transform:uppercase;margin-top:6px;}
+
+        /* ── Form card ── */
+        .form-wrap{max-width:560px;margin:2rem auto 4rem;padding:0 1.5rem;}
+        .form-card{
+            background:#fff;
+            border:1.5px solid #f3e0ea;
+            border-radius:24px;
+            padding:2rem 2rem 2.4rem;
+            box-shadow:0 4px 24px rgba(201,127,160,0.07);
+            animation:fadeup 0.4s ease both;
+        }
+        @keyframes fadeup{from{opacity:0;transform:translateY(14px);}to{opacity:1;transform:translateY(0);}}
+
+        .form-section-label{
+            font-size:10px;letter-spacing:3px;text-transform:uppercase;
+            color:#d4a0bb;margin:1.6rem 0 0.9rem;
+            display:flex;align-items:center;gap:8px;
+        }
+        .form-section-label::after{content:'';flex:1;height:1px;background:#fce8f2;}
+        .form-section-label:first-of-type{margin-top:0;}
+
+        .field{margin-bottom:1.1rem;}
+        .field label{
+            display:block;font-size:11px;font-weight:500;
+            color:#b07090;letter-spacing:1px;margin-bottom:5px;
+        }
+        .field label .req{color:#e0a8c4;margin-left:2px;}
+        .field label .hint{
+            font-weight:300;color:#d4b0c0;font-size:10px;
+            letter-spacing:0;margin-left:6px;text-transform:none;
+        }
+
+        .field input,
+        .field select,
+        .field textarea{
+            width:100%;
+            padding:10px 14px;
+            background:#fdf8f5;
+            border:1.5px solid #f0dcea;
+            border-radius:12px;
+            font-family:'Noto Sans KR',sans-serif;
+            font-size:13px;
+            color:#5a3a4a;
+            transition:border-color 0.18s, box-shadow 0.18s;
+            outline:none;
+            -webkit-appearance:none;
+        }
+        .field select{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%23d4a0bb' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 14px center;padding-right:36px;cursor:pointer;}
+        .field textarea{resize:vertical;min-height:72px;line-height:1.55;}
+        .field input:focus,
+        .field select:focus,
+        .field textarea:focus{border-color:#c97fa0;box-shadow:0 0 0 3px rgba(201,127,160,0.10);background:#fff;}
+        .field input::placeholder,
+        .field textarea::placeholder{color:#d4b8c6;font-size:12px;}
+
+        /* Two-column layout for small paired fields */
+        .field-row{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+
+        /* ── Submit ── */
+        .submit-btn{
+            width:100%;margin-top:1.8rem;
+            padding:13px;
+            background:linear-gradient(135deg,#e8aac8,#c97fa0);
+            border:none;border-radius:14px;
+            font-family:'Gaegu',cursive;font-size:20px;
+            color:#fff;letter-spacing:1px;
+            cursor:pointer;
+            transition:all 0.22s ease;
+            box-shadow:0 4px 16px rgba(201,127,160,0.25);
+            display:flex;align-items:center;justify-content:center;gap:8px;
+        }
+        .submit-btn:hover:not(:disabled){
+            background:linear-gradient(135deg,#d898b8,#b8608e);
+            transform:translateY(-2px);
+            box-shadow:0 6px 22px rgba(201,127,160,0.32);
+        }
+        .submit-btn:disabled{opacity:0.65;cursor:not-allowed;transform:none;}
+
+        /* ── Success overlay ── */
+        .success-overlay{
+            display:none;
+            position:fixed;inset:0;
+            background:rgba(253,248,245,0.92);
+            backdrop-filter:blur(6px);
+            z-index:100;
+            flex-direction:column;align-items:center;justify-content:center;
+            text-align:center;padding:2rem;
+            animation:fadeIn 0.35s ease;
+        }
+        .success-overlay.show{display:flex;}
+        @keyframes fadeIn{from{opacity:0;}to{opacity:1;}}
+        .success-bubble{
+            background:#fff;
+            border:1.5px solid #f3e0ea;
+            border-radius:28px;
+            padding:2.8rem 2.4rem;
+            box-shadow:0 8px 40px rgba(201,127,160,0.14);
+            max-width:360px;width:100%;
+            animation:popIn 0.38s cubic-bezier(0.34,1.56,0.64,1) both;
+        }
+        @keyframes popIn{from{opacity:0;transform:scale(0.85);}to{opacity:1;transform:scale(1);}}
+        .success-bubble .icon{font-size:48px;margin-bottom:1rem;}
+        .success-bubble h2{font-family:'Gaegu',cursive;font-size:28px;color:#c97fa0;margin-bottom:0.5rem;}
+        .success-bubble p{font-size:13px;color:#b08098;line-height:1.6;margin-bottom:1.4rem;}
+        .success-bubble .redirect-note{font-size:11px;color:#d4a0bb;letter-spacing:1px;}
+
+        /* Loading spinner */
+        .spinner{
+            width:18px;height:18px;
+            border:2.5px solid rgba(255,255,255,0.4);
+            border-top-color:#fff;
+            border-radius:50%;
+            animation:spin 0.7s linear infinite;
+        }
+        @keyframes spin{to{transform:rotate(360deg);}}
+
+        .footer-bar{text-align:center;margin-top:1rem;font-size:11px;color:#d4b0c0;letter-spacing:1px;}
+    </style>
+</head>
+<body>
+
+<!-- Success overlay -->
+<div class="success-overlay" id="successOverlay">
+    <div class="success-bubble">
+        <div class="icon">🌸</div>
+        <h2>등록 완료!</h2>
+        <p>상품이 성공적으로 등록되었어요.<br>Product added successfully.</p>
+        <div class="redirect-note">☁️ 잠시 후 메인으로 이동합니다…</div>
+    </div>
+</div>
+
+<div class="hero">
+    <a class="back-btn" href="index.html">← 돌아가기</a>
+    <div class="brand">chaeijeu</div>
+    <div class="brand-kr">채이즈</div>
+    <div class="deco">✏️ 🌸 ☁️</div>
+    <div class="page-title">상품 등록 · Add Product</div>
+</div>
+
+<div class="form-wrap">
+    <div class="form-card">
+
+        <!-- ── Basic info ── -->
+        <div class="form-section-label">기본 정보 · Basic Info</div>
+
+        <div class="field">
+            <label>ID <span class="req">*</span> <span class="hint">unique product id (e.g. pj-001)</span></label>
+            <input type="text" id="f-id" name="id" placeholder="pj-001" required>
+        </div>
+
+        <div class="field-row">
+            <div class="field">
+                <label>카테고리 Cat <span class="req">*</span></label>
+                <select id="f-cat" name="cat" required>
+                    <option value="" disabled selected>선택</option>
+                    <option value="set">set · 세트</option>
+                    <option value="top">top · 상의</option>
+                    <option value="bottom">bottom · 하의</option>
+                </select>
+            </div>
+            <div class="field">
+                <label>뱃지 Badge <span class="hint">optional</span></label>
+                <select id="f-badge" name="badge">
+                    <option value="">없음 None</option>
+                    <option value="best">베스트 Best</option>
+                    <option value="new">신상 New</option>
+                    <option value="set">세트 Set</option>
+                </select>
+            </div>
+        </div>
+
+        <!-- ── Names ── -->
+        <div class="form-section-label">상품명 · Product Name</div>
+
+        <div class="field">
+            <label>영문 이름 Name (EN) <span class="req">*</span></label>
+            <input type="text" id="f-name" name="name" placeholder="Cloud Print Set" required>
+        </div>
+
+        <div class="field">
+            <label>한글 이름 Name (KR) <span class="req">*</span></label>
+            <input type="text" id="f-nameKr" name="nameKr" placeholder="구름 프린트 세트" required>
+        </div>
+
+        <!-- ── Price & Sizes ── -->
+        <div class="form-section-label">가격 & 사이즈 · Price & Sizes</div>
+
+        <div class="field-row">
+            <div class="field">
+                <label>가격 Price <span class="req">*</span> <span class="hint">e.g. ₩29,000</span></label>
+                <input type="text" id="f-price" name="price" placeholder="₩29,000" required>
+            </div>
+            <div class="field">
+                <label>사이즈 Sizes <span class="req">*</span> <span class="hint">e.g. S / M / L</span></label>
+                <input type="text" id="f-sizes" name="sizes" placeholder="S / M / L / XL" required>
+            </div>
+        </div>
+
+        <!-- ── Image ── -->
+        <div class="form-section-label">이미지 · Image</div>
+
+        <div class="field">
+            <label>이미지 URL img <span class="req">*</span> <span class="hint">direct image link</span></label>
+            <input type="url" id="f-img" name="img" placeholder="https://..." required>
+        </div>
+
+        <button class="submit-btn" id="submitBtn" onclick="handleSubmit()">
+            <span id="btnText">등록하기 Submit 🌸</span>
+        </button>
+
+    </div>
+    <div class="footer-bar">🌸 free shipping over ₩30,000 · 무료배송 🌸</div>
+</div>
+
+<script>
+// ── CONFIGURATION ──────────────────────────────────────────────────────────
+// Paste your deployed Google Apps Script Web App URL here:
+const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbzXt29HVQyjetXFlAT-qVrhuwK_HEhSmuRjfLQ4fz0rQLIfQiWg7Dc15poHbtxtQ8PHjg/exec";
+// ──────────────────────────────────────────────────────────────────────────
+
+// Field IDs mapped to the URL parameter names that match the Google Sheet columns
+const FIELDS = [
+    { id: 'f-id',     param: 'id' },
+    { id: 'f-cat',    param: 'cat' },
+    { id: 'f-badge',  param: 'badge' },
+    { id: 'f-name',   param: 'name' },
+    { id: 'f-nameKr', param: 'nameKr' },
+    { id: 'f-price',  param: 'price' },
+    { id: 'f-sizes',  param: 'sizes' },
+    { id: 'f-img',    param: 'img' },
+];
+
+function getFieldValues() {
+    const data = {};
+    FIELDS.forEach(f => {
+        const el = document.getElementById(f.id);
+        data[f.param] = el ? el.value.trim() : '';
+    });
+    return data;
+}
+
+function validate(data) {
+    const required = ['id', 'cat', 'name', 'nameKr', 'price', 'sizes', 'img'];
+    for (const key of required) {
+        if (!data[key]) {
+            const field = FIELDS.find(f => f.param === key);
+            if (field) document.getElementById(field.id).focus();
+            return false;
+        }
+    }
+    return true;
+}
+
+function setLoading(on) {
+    const btn = document.getElementById('submitBtn');
+    const txt = document.getElementById('btnText');
+    btn.disabled = on;
+    if (on) {
+        txt.innerHTML = '';
+        const spinner = document.createElement('div');
+        spinner.className = 'spinner';
+        txt.appendChild(spinner);
+        txt.appendChild(document.createTextNode(' 등록 중…'));
+    } else {
+        txt.innerHTML = '등록하기 Submit 🌸';
+    }
+}
+
+function showSuccess() {
+    document.getElementById('successOverlay').classList.add('show');
+    // Redirect after 2.6 seconds
+    setTimeout(() => { window.location.href = 'index.html'; }, 2600);
+}
+
+async function handleSubmit() {
+    const data = getFieldValues();
+    if (!validate(data)) return;
+
+    setLoading(true);
+
+    try {
+        // Build URL with query parameters matching the Google Sheet columns
+        const url = new URL(WEB_APP_URL);
+        Object.entries(data).forEach(([key, val]) => url.searchParams.set(key, val));
+
+        const res = await fetch(url.toString(), { method: 'GET' });
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+
+        showSuccess();
+    } catch (err) {
+        setLoading(false);
+        alert(`⚠️ 오류가 발생했어요.\n${err.message}`);
+    }
+}
+</script>
+</body>
+</html>
